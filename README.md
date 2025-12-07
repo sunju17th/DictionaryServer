@@ -10,7 +10,6 @@ Một dự án mẫu cho môn Lập trình Mạng: hệ thống từ điển Anh
 - **Kiến trúc & Công nghệ**
 - **Cài đặt & Chạy thử (Windows / PowerShell)**
 - **Tài khoản mẫu**
-- **Kịch bản demo**
 - **Hướng phát triển**
 
 ---
