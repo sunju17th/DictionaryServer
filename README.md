@@ -35,10 +35,11 @@ Dự án xây dựng một hệ thống từ điển hoạt động theo mô hì
 ## 4. Cài đặt & Chạy thử (Windows / PowerShell)
 Yêu cầu: Python 3.6+ đã cài.
 
-1) Mở PowerShell, di chuyển đến thư mục dự án:
+1) Mở PowerShell, clone dự án :
 
 ```
-cd D:\\BT_LAP_TRINH_MANG\\DoAnCuoiKi
+git clone https://github.com/sunju17th/DictionaryServer.git
+cd DictionaryServer
 ```
 
 2) Chạy server:
