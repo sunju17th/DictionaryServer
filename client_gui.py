@@ -2,7 +2,6 @@ import socket
 import tkinter as tk
 from tkinter import ttk, messagebox, scrolledtext
 import json
-import threading
 
 # Cấu hình kết nối mặc định
 DEFAULT_HOST = 'localhost'
@@ -27,6 +26,10 @@ class DictionaryClientGUI:
         
     def setup_login_ui(self):
         """Giao diện đăng nhập"""
+        # Xóa main_frame cũ nếu tồn tại (khi logout)
+        if hasattr(self, 'main_frame') and self.main_frame:
+            self.main_frame.destroy()
+        
         self.main_frame = ttk.Frame(self.root, padding="20")
         self.main_frame.pack(fill=tk.BOTH, expand=True)
         
@@ -316,8 +319,56 @@ class DictionaryClientGUI:
             messagebox.showerror("Lỗi", resp)
 
     def logout(self):
-        if self.socket: self.socket.close()
-        self.setup_login_ui()
+        # Gửi lệnh QUIT về server
+        try:
+            if self.socket and self.connected:
+                self.socket.send("QUIT".encode('utf-8'))
+        except:
+            pass
+        
+        # Đóng kết nối
+        if self.socket: 
+            self.socket.close()
+            self.socket = None
+        
+        # Reset trạng thái
+        self.connected = False
+        self.user_role = None
+        self.username = None
+        
+        # Xóa toàn bộ widget trong main_frame (bao gồm cả notebook)
+        for widget in self.main_frame.winfo_children():
+            widget.destroy()
+        
+        # Xóa reference của notebook nếu có
+        if hasattr(self, 'notebook'):
+            self.notebook = None
+        
+        # Tạo lại giao diện login (giữ nguyên main_frame)
+        # Tiêu đề
+        ttk.Label(self.main_frame, text="ĐĂNG NHẬP HỆ THỐNG", font=("Arial", 16, "bold")).pack(pady=20)
+        
+        # Form nhập liệu
+        form_frame = ttk.Frame(self.main_frame)
+        form_frame.pack()
+        
+        ttk.Label(form_frame, text="Server IP:").grid(row=0, column=0, sticky=tk.W, pady=5)
+        self.host_entry = ttk.Entry(form_frame, width=25)
+        self.host_entry.insert(0, DEFAULT_HOST)
+        self.host_entry.grid(row=0, column=1, pady=5)
+        
+        ttk.Label(form_frame, text="Username:").grid(row=1, column=0, sticky=tk.W, pady=5)
+        self.user_entry = ttk.Entry(form_frame, width=25)
+        self.user_entry.grid(row=1, column=1, pady=5)
+        
+        ttk.Label(form_frame, text="Password:").grid(row=2, column=0, sticky=tk.W, pady=5)
+        self.pass_entry = ttk.Entry(form_frame, show="*", width=25)
+        self.pass_entry.grid(row=2, column=1, pady=5)
+        
+        ttk.Button(form_frame, text="Kết nối & Đăng nhập", command=self.connect_and_login).grid(row=3, column=0, columnspan=2, pady=20)
+        
+        self.status_lbl = ttk.Label(self.main_frame, text="Chưa kết nối", foreground="gray")
+        self.status_lbl.pack(side=tk.BOTTOM, pady=10)
 
 if __name__ == "__main__":
     root = tk.Tk()

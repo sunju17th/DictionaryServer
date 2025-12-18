@@ -2,6 +2,7 @@ import socket
 import threading
 import json
 import os
+import re
 from datetime import datetime
 
 class DictionaryServer:
@@ -24,6 +25,32 @@ class DictionaryServer:
         }
         
         self.load_data()
+    
+    def validate_input(self, word, meaning):
+        """Validate word and meaning input"""
+        # Kiểm tra rỗng
+        if not word or not meaning:
+            return False, "Word and meaning cannot be empty"
+        
+        # Kiểm tra độ dài
+        if len(word) > 50:
+            return False, "Word too long (maximum 50 characters)"
+        if len(meaning) > 500:
+            return False, "Meaning too long (maximum 500 characters)"
+        
+        # Kiểm tra ký tự đặc biệt nguy hiểm (phá vỡ giao thức)
+        if '|' in word or '|' in meaning:
+            return False, "Cannot contain pipe character '|'"
+        
+        # Kiểm tra từ chỉ chứa chữ cái, số, dấu gạch ngang, khoảng trắng
+        if not re.match(r'^[a-zA-Z0-9\s\-\']+$', word.strip()):
+            return False, "Word contains invalid characters (only letters, numbers, spaces, hyphens allowed)"
+        
+        # Kiểm tra không phải toàn khoảng trắng
+        if word.strip() == '' or meaning.strip() == '':
+            return False, "Word and meaning cannot be only whitespace"
+        
+        return True, "Valid"
         
     def load_data(self):
         """Load dictionary and pending requests from files"""
@@ -205,8 +232,10 @@ class DictionaryServer:
                 word = word.lower().strip()
                 meaning = meaning.strip()
                 
-                if not word or not meaning:
-                    return "ERROR|Word and meaning cannot be empty"
+                # Validate input
+                is_valid, error_msg = self.validate_input(word, meaning)
+                if not is_valid:
+                    return f"ERROR|{error_msg}"
                 
                 with self.lock:
                     if word in self.dictionary:
@@ -239,8 +268,10 @@ class DictionaryServer:
                 word = word.lower().strip()
                 meaning = meaning.strip()
                 
-                if not word or not meaning:
-                    return "ERROR|Word and meaning cannot be empty"
+                # Validate input
+                is_valid, error_msg = self.validate_input(word, meaning)
+                if not is_valid:
+                    return f"ERROR|{error_msg}"
                 
                 with self.lock:
                     if word not in self.dictionary:
